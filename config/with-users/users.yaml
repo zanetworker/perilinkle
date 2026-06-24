@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: perilinkle-users
+  namespace: openshell
+data:
+  users.json: |
+    {
+      "users": [
+        {
+          "username": "admin-user",
+          "email": "admin@foo.com",
+          "firstName": "Admin",
+          "lastName": "User",
+          "emailVerified": true,
+          "roles": ["openshell-admin"]
+        },
+        {
+          "username": "regular-user",
+          "email": "demouser@foo.com",
+          "firstName": "Demo",
+          "lastName": "User",
+          "emailVerified": true,
+          "roles": ["openshell-user"]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: perilinkle-user-passwords
+  namespace: openshell
+type: Opaque
+stringData:
+  admin-user: admin123
+  regular-user: user123

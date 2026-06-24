@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-admin
+  namespace: openshell
+type: Opaque
+stringData:
+  password: admin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: openshell
+  labels:
+    app: keycloak
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: keycloak
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: keycloak
+  name: keycloak-discovery
+  namespace: openshell
+spec:
+  selector:
+    app: keycloak
+  clusterIP: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: keycloak
+  namespace: openshell
+  labels:
+    app: keycloak
+spec:
+  serviceName: keycloak-discovery
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.6.0
+          args: ["start-dev"]
+          env:
+            - name: KC_HOSTNAME
+              value: "keycloak.192.168.39.75.sslip.io"
+            - name: KC_HOSTNAME_STRICT
+              value: "true"
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: "admin"
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin
+                  key: password
+            - name: KC_PROXY_HEADERS
+              value: "xforwarded"
+            - name: KC_FEATURES
+              value: "client-auth-federated,spiffe"
+            - name: KC_TRUSTSTORE_PATHS
+              value: "/etc/x509/spiffe-bundle/bundle.pem"
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /realms/master
+              port: 8080
+          volumeMounts:
+            - name: spiffe-bundle
+              mountPath: /etc/x509/spiffe-bundle
+              readOnly: true
+        - name: spiffe-helper
+          image: ghcr.io/spiffe/spiffe-helper:0.11.0
+          args: ["-config", "/etc/spiffe-helper/config.conf"]
+          volumeMounts:
+            - name: spiffe-socket
+              mountPath: /run/spire/sockets
+            - name: spiffe-bundle
+              mountPath: /target
+            - name: helper-config
+              mountPath: /etc/spiffe-helper
+      volumes:
+        - name: spiffe-socket
+          csi:
+            driver: "csi.spiffe.io"
+            readOnly: true
+        - name: spiffe-bundle
+          emptyDir: {}
+        - name: helper-config
+          configMap:
+            name: spiffe-helper-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spiffe-helper-config
+  namespace: openshell
+data:
+  config.conf: |
+    agent_address = "/run/spire/sockets/spire-agent.sock"
+    cmd = ""
+    cert_dir = "/target"
+    renew_signal = "SIGHUP"
+    svid_file_name = "svid.pem"
+    svid_key_file_name = "key.pem"
+    svid_bundle_file_name = "bundle.pem"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak
+  namespace: openshell
+  labels:
+    app: keycloak
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: keycloak.192.168.39.75.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak
+                port:
+                  number: 80

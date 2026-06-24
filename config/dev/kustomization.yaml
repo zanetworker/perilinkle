@@ -1,0 +1,37 @@
+resources:
+  - ../with-users
+  - keycloak.yaml
+
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: perilinkle
+      namespace: openshell
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: OPENSHELL_GATEWAY_ADDRESS
+          value: openshell.openshell.svc.cluster.local:8080
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: OPENSHELL_GATEWAY_CA_FILE
+          value: /etc/openshell-client-tls/ca.crt
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts
+        value:
+          - name: openshell-client-tls
+            mountPath: /etc/openshell-client-tls
+            readOnly: true
+      - op: add
+        path: /spec/template/spec/volumes
+        value:
+          - name: openshell-client-tls
+            secret:
+              secretName: openshell-client-tls
+              items:
+                - key: ca.crt
+                  path: ca.crt
