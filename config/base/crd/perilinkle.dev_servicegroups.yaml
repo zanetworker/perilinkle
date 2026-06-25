@@ -1,0 +1,170 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: servicegroups.perilinkle.dev
+spec:
+  group: perilinkle.dev
+  names:
+    kind: ServiceGroup
+    listKind: ServiceGroupList
+    plural: servicegroups
+    singular: servicegroup
+    shortNames:
+      - sg
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                providerProfileName:
+                  type: string
+                providerProfile:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    id:
+                      type: string
+                    displayName:
+                      type: string
+                    description:
+                      type: string
+                    category:
+                      type: string
+                    tokenEndpoint:
+                      type: string
+                    jwtSVIDAudience:
+                      type: string
+                    subjectCredentialName:
+                      type: string
+                    accessCredentialName:
+                      type: string
+                    clientAssertionType:
+                      type: string
+                    endpointDefaults:
+                      type: object
+                      properties:
+                        port:
+                          type: integer
+                          format: int32
+                        protocol:
+                          type: string
+                        tls:
+                          type: string
+                        access:
+                          type: string
+                        allowedIPs:
+                          type: array
+                          items:
+                            type: string
+                    binaries:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - path
+                        properties:
+                          path:
+                            type: string
+                targetServices:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                      clientID:
+                        type: string
+                      description:
+                        type: string
+                      namespace:
+                        type: string
+                      serviceAccountName:
+                        type: string
+                      spiffeID:
+                        type: string
+                      endpoint:
+                        type: object
+                        properties:
+                          host:
+                            type: string
+                          port:
+                            type: integer
+                            format: int32
+                          protocol:
+                            type: string
+                          tls:
+                            type: string
+                          access:
+                            type: string
+                          allowedIPs:
+                            type: array
+                            items:
+                              type: string
+                      token:
+                        type: object
+                        properties:
+                          audience:
+                            type: string
+                          scopes:
+                            type: array
+                            items:
+                              type: string
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                  format: int64
+                ready:
+                  type: boolean
+                providerProfileID:
+                  type: string
+                providerProfileResourceVersion:
+                  type: string
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - status
+                      - lastTransitionTime
+                      - reason
+                      - message
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      observedGeneration:
+                        type: integer
+                        format: int64
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                      reason:
+                        type: string
+                      message:
+                        type: string
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Profile
+          type: string
+          jsonPath: .spec.providerProfileName
+        - name: Ready
+          type: boolean
+          jsonPath: .status.ready
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp

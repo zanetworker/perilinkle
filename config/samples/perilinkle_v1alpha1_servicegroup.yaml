@@ -1,0 +1,47 @@
+apiVersion: perilinkle.dev/v1alpha1
+kind: ServiceGroup
+metadata:
+  name: dummy-services
+  namespace: openshell
+spec:
+  providerProfileName: default
+  providerProfile:
+    enabled: true
+    id: keycloak-exchange
+    displayName: Keycloak protected services with on-behalf-of token semantics
+    description: Token exchange for Keycloak-protected services using SPIFFE authentication
+    category: other
+    jwtSVIDAudience: http://keycloak.192.168.39.75.sslip.io/realms/openshell
+    endpointDefaults:
+      port: 80
+      protocol: rest
+      tls: none
+      access: read-write
+    binaries:
+      - path: /usr/bin/curl
+      - path: /usr/bin/wget
+  targetServices:
+    - name: alpha
+      namespace: default
+      description: Alpha service
+      serviceAccountName: alpha
+    - name: beta
+      namespace: default
+      description: Beta service
+      serviceAccountName: beta
+      endpoint:
+        host: beta.default.svc.cluster.local
+        port: 80
+        protocol: rest
+        tls: none
+        access: read-write
+      token:
+        audience: beta
+    - name: gamma
+      namespace: default
+      description: Gamma service
+      serviceAccountName: gamma
+    - name: delta
+      namespace: default
+      description: Delta service
+      serviceAccountName: delta
