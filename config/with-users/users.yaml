@@ -16,6 +16,14 @@ data:
           "roles": ["openshell-admin"]
         },
         {
+          "username": "gordon",
+          "email": "gordon.sim@foo.com",
+          "firstName": "Gordon",
+          "lastName": "Sim",
+          "emailVerified": true,
+          "roles": ["openshell-admin"]
+        },
+        {
           "username": "regular-user",
           "email": "demouser@foo.com",
           "firstName": "Demo",
@@ -35,3 +43,4 @@ type: Opaque
 stringData:
   admin-user: admin123
   regular-user: user123
+  gordon: gordon123
