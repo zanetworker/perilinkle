@@ -11,7 +11,8 @@ fmt:
 
 .PHONY: build
 build:
-	go build ./cmd/perilinkle
+	go build -o perilinkle ./cmd/perilinkle
+	go build -o perilinkle-podman ./cmd/perilinkle-podman
 
 .PHONY: image-build
 image-build:
