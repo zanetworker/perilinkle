@@ -15,12 +15,6 @@ import (
 
 const SandboxFinalizer = "openshell.dev/keycloak-client"
 
-var AgentSandboxGVK = schema.GroupVersionKind{
-	Group:   "agents.x-k8s.io",
-	Version: "v1alpha1",
-	Kind:    "Sandbox",
-}
-
 type SandboxReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
@@ -33,10 +27,14 @@ type SandboxConfig struct {
 	ManagedLabelValue string
 	Realm             string
 	SPIFFETrustDomain string
+	// SandboxGVK is the Agent Sandbox Sandbox kind served by the cluster (see ResolveSandboxGVK).
+	SandboxGVK schema.GroupVersionKind
+	// SPIFFEIDTemplate must match the ClusterSPIFFEID that issues supervisor SVIDs.
+	SPIFFEIDTemplate SPIFFEIDTemplate
 }
 
 func (r *SandboxReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	resource := agentSandboxObject()
+	resource := agentSandboxObject(r.Config.SandboxGVK)
 	if err := r.Get(ctx, req.NamespacedName, resource); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -57,7 +55,7 @@ func (r *SandboxReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		ID:            sandboxID,
 		Namespace:     resource.GetNamespace(),
 		Name:          resource.GetName(),
-		SPIFFESubject: sandboxSPIFFESubject(r.Config.SPIFFETrustDomain, resource.GetNamespace(), sandboxID),
+		SPIFFESubject: r.Config.SPIFFEIDTemplate.Render(r.Config.SPIFFETrustDomain, resource.GetNamespace(), resource.GetName(), sandboxID),
 	}
 	realm := configuredRealm(r.Config.Realm)
 
@@ -94,22 +92,18 @@ func (r *SandboxReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 func (r *SandboxReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(agentSandboxObject()).
+		For(agentSandboxObject(r.Config.SandboxGVK)).
 		Complete(r)
 }
 
-func agentSandboxObject() *unstructured.Unstructured {
+func agentSandboxObject(gvk schema.GroupVersionKind) *unstructured.Unstructured {
 	obj := &unstructured.Unstructured{}
-	obj.SetGroupVersionKind(AgentSandboxGVK)
+	obj.SetGroupVersionKind(gvk)
 	return obj
 }
 
 func sandboxID(resource *unstructured.Unstructured) string {
 	return resource.GetLabels()[LabelSandboxID]
-}
-
-func sandboxSPIFFESubject(trustDomain, namespace, sandboxID string) string {
-	return fmt.Sprintf("%s/%s/sandbox/%s", trustDomain, namespace, sandboxID)
 }
 
 func containsFinalizer(obj client.Object, finalizer string) bool {

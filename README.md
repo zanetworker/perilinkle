@@ -37,7 +37,6 @@ spec:
     endpointDefaults:
       port: 80
       protocol: rest
-      tls: none
       access: read-write
   targetServices:
     - name: alpha
@@ -55,10 +54,11 @@ Sandbox IDs are assumed to be globally unique.
 
 Default realm: `openshell`.
 
-Default sandbox SPIFFE ID:
+Default sandbox SPIFFE ID (matches the OpenShell Helm SPIRE overlay; change it
+with `--sandbox-spiffe-id-template`):
 
 ```text
-spiffe://<trust-domain>/<namespace>/sandbox/<sandbox-id>
+spiffe://<trust-domain>/openshell/sandbox/<sandbox-id>
 ```
 
 Default target-service SPIFFE ID:
@@ -84,7 +84,6 @@ targetServices:
       host: beta.default.svc.cluster.local
       port: 80
       protocol: rest
-      tls: none
 ```
 
 Per-service token overrides:
@@ -113,6 +112,18 @@ Important flags and matching environment variables:
 - `--gateway-api-client-id` / `GATEWAY_API_CLIENT_ID`, default
   `perilinkle-openshell-gateway`
 - `--users-configmap` / `USERS_CONFIGMAP`, optional prototype users
+- `--sandbox-api-version` / `SANDBOX_API_VERSION`, Agent Sandbox `Sandbox`
+  API version to watch. Empty auto-detects through discovery, preferring
+  `v1beta1` (Red Hat build of Agent Sandbox) and falling back to `v1alpha1`
+- `--sandbox-spiffe-id-template` / `SANDBOX_SPIFFE_ID_TEMPLATE`, default
+  `{trustDomain}/openshell/sandbox/{sandboxID}`. Must match the
+  ClusterSPIFFEID that issues supervisor SVIDs, because Keycloak matches the
+  SVID subject exactly. Placeholders: `{trustDomain}`, `{namespace}`, `{name}`,
+  `{sandboxID}` (required)
+- `--keycloak-admin-client-id` / `KEYCLOAK_ADMIN_CLIENT_ID` and
+  `--keycloak-admin-client-secret` / `KEYCLOAK_ADMIN_CLIENT_SECRET`, optional
+  service-account client (`client_credentials`) with realm-management roles,
+  used instead of the admin user password
 
 ## Development
 

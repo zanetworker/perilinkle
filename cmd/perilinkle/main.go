@@ -9,6 +9,7 @@ import (
 	"github.com/gsim/perilinkle/internal/keycloak"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/discovery"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -37,6 +38,8 @@ func main() {
 		keycloakAdminRealm       string
 		keycloakAdminUser        string
 		keycloakAdminPass        string
+		keycloakAdminClientID    string
+		keycloakAdminClientSec   string
 		spiffeTrustDomain        string
 		spiffeBundleEndpoint     string
 		gatewayClientID          string
@@ -48,6 +51,8 @@ func main() {
 		openShellGatewayAddr     string
 		openShellGatewayCAFile   string
 		openShellGatewayInsecure bool
+		sandboxAPIVersion        string
+		sandboxSPIFFEIDTemplate  string
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
@@ -61,6 +66,8 @@ func main() {
 	flag.StringVar(&keycloakAdminRealm, "keycloak-admin-realm", envOrDefault("KEYCLOAK_ADMIN_REALM", "master"), "Keycloak admin realm.")
 	flag.StringVar(&keycloakAdminUser, "keycloak-admin-user", envOrDefault("KEYCLOAK_ADMIN_USER", "admin"), "Keycloak admin username.")
 	flag.StringVar(&keycloakAdminPass, "keycloak-admin-password", os.Getenv("KEYCLOAK_ADMIN_PASSWORD"), "Keycloak admin password.")
+	flag.StringVar(&keycloakAdminClientID, "keycloak-admin-client-id", os.Getenv("KEYCLOAK_ADMIN_CLIENT_ID"), "Optional Keycloak service-account client (client_credentials) used instead of the admin user password.")
+	flag.StringVar(&keycloakAdminClientSec, "keycloak-admin-client-secret", os.Getenv("KEYCLOAK_ADMIN_CLIENT_SECRET"), "Secret for --keycloak-admin-client-id.")
 	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", envOrDefault("SPIFFE_TRUST_DOMAIN", "spiffe://openshell.local"), "SPIFFE trust domain URI.")
 	flag.StringVar(&spiffeBundleEndpoint, "spiffe-bundle-endpoint", envOrDefault("SPIFFE_BUNDLE_ENDPOINT", "https://spire-spiffe-oidc-discovery-provider.spire.svc.cluster.local/keys"), "SPIFFE OIDC bundle endpoint.")
 	flag.StringVar(&gatewayClientID, "gateway-client-id", envOrDefault("GATEWAY_CLIENT_ID", "openshell-gateway"), "OpenShell gateway Keycloak client ID.")
@@ -72,6 +79,10 @@ func main() {
 	flag.StringVar(&openShellGatewayAddr, "openshell-gateway-address", os.Getenv("OPENSHELL_GATEWAY_ADDRESS"), "Optional OpenShell Gateway gRPC address used for provider profile upsert.")
 	flag.StringVar(&openShellGatewayCAFile, "openshell-gateway-ca-file", os.Getenv("OPENSHELL_GATEWAY_CA_FILE"), "Optional PEM CA bundle used to verify the OpenShell Gateway TLS certificate.")
 	flag.BoolVar(&openShellGatewayInsecure, "openshell-gateway-insecure", envBoolOrDefault("OPENSHELL_GATEWAY_INSECURE", false), "Use insecure transport for OpenShell Gateway gRPC.")
+
+	flag.StringVar(&sandboxAPIVersion, "sandbox-api-version", os.Getenv("SANDBOX_API_VERSION"), "Agent Sandbox API version to watch. Empty auto-detects (prefers v1beta1, then v1alpha1).")
+
+	flag.StringVar(&sandboxSPIFFEIDTemplate, "sandbox-spiffe-id-template", envOrDefault("SANDBOX_SPIFFE_ID_TEMPLATE", controller.DefaultSPIFFEIDTemplate), "Sandbox supervisor SPIFFE ID template; must match the ClusterSPIFFEID. Placeholders: {trustDomain} {namespace} {name} {sandboxID}.")
 
 	opts := zap.Options{Development: true}
 	opts.BindFlags(flag.CommandLine)
@@ -96,12 +107,32 @@ func main() {
 		os.Exit(1)
 	}
 
+	spiffeIDTemplate, err := controller.NewSPIFFEIDTemplate(sandboxSPIFFEIDTemplate)
+	if err != nil {
+		ctrl.Log.Error(err, "invalid sandbox SPIFFE ID template")
+		os.Exit(1)
+	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(mgr.GetConfig())
+	if err != nil {
+		ctrl.Log.Error(err, "unable to create discovery client")
+		os.Exit(1)
+	}
+	sandboxGVK, err := controller.ResolveSandboxGVK(discoveryClient, sandboxAPIVersion)
+	if err != nil {
+		ctrl.Log.Error(err, "unable to resolve Agent Sandbox API version")
+		os.Exit(1)
+	}
+	ctrl.Log.Info("watching Agent Sandbox", "gvk", sandboxGVK.String())
+
 	keycloakClient := keycloak.NewClient(keycloak.Config{
 		BaseURL:              keycloakBaseURL,
 		Realm:                keycloakRealm,
 		AdminRealm:           keycloakAdminRealm,
 		AdminUsername:        keycloakAdminUser,
 		AdminPassword:        keycloakAdminPass,
+		AdminClientID:        keycloakAdminClientID,
+		AdminClientSecret:    keycloakAdminClientSec,
 		SPIFFETrustDomain:    spiffeTrustDomain,
 		SPIFFEBundleEndpoint: spiffeBundleEndpoint,
 		GatewayClientID:      gatewayClientID,
@@ -138,6 +169,8 @@ func main() {
 			ManagedLabelValue: "openshell",
 			Realm:             keycloakRealm,
 			SPIFFETrustDomain: spiffeTrustDomain,
+			SandboxGVK:        sandboxGVK,
+			SPIFFEIDTemplate:  spiffeIDTemplate,
 		},
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create sandbox controller")
@@ -156,6 +189,8 @@ func main() {
 			KeycloakPublicURL: keycloakPublicURL,
 			Realm:             keycloakRealm,
 			SPIFFETrustDomain: spiffeTrustDomain,
+			SandboxGVK:        sandboxGVK,
+			SPIFFEIDTemplate:  spiffeIDTemplate,
 		},
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create service group controller")

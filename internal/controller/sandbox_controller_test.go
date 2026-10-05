@@ -24,11 +24,3 @@ func TestSandboxIDMissingLabelIsEmpty(t *testing.T) {
 		t.Fatalf("sandboxID = %q, want empty", got)
 	}
 }
-
-func TestSandboxSPIFFESubject(t *testing.T) {
-	got := sandboxSPIFFESubject("spiffe://openshell.local", "tenant-a", "sandbox-123")
-	want := "spiffe://openshell.local/tenant-a/sandbox/sandbox-123"
-	if got != want {
-		t.Fatalf("sandboxSPIFFESubject = %q, want %q", got, want)
-	}
-}

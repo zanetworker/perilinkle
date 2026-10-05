@@ -636,10 +636,16 @@ func (c *Client) ensureToken(ctx context.Context) error {
 	c.mu.Unlock()
 
 	values := url.Values{}
-	values.Set("grant_type", "password")
-	values.Set("client_id", "admin-cli")
-	values.Set("username", c.config.AdminUsername)
-	values.Set("password", c.config.AdminPassword)
+	if c.config.AdminClientID != "" {
+		values.Set("grant_type", "client_credentials")
+		values.Set("client_id", c.config.AdminClientID)
+		values.Set("client_secret", c.config.AdminClientSecret)
+	} else {
+		values.Set("grant_type", "password")
+		values.Set("client_id", "admin-cli")
+		values.Set("username", c.config.AdminUsername)
+		values.Set("password", c.config.AdminPassword)
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(c.config.BaseURL, "/")+"/realms/"+url.PathEscape(c.config.AdminRealm)+"/protocol/openid-connect/token", strings.NewReader(values.Encode()))
 	if err != nil {
 		return err

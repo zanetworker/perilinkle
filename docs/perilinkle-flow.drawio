@@ -1,0 +1,155 @@
+<mxfile host="drawio">
+  <diagram id="perilinkle-flow" name="perilinkle flow">
+    <mxGraphModel dx="1600" dy="1000" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1000" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-10" y="-60" width="1560" height="1000" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="title" value="&lt;b&gt;perilinkle (fork): per-sandbox SPIFFE identity registration and token exchange&lt;/b&gt;" style="text;html=1;fontSize=20;fontColor=#151515;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="-40" width="1100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane1" value="&lt;b&gt;CONTROL PLANE&lt;/b&gt; · registration (once per sandbox)" style="text;html=1;fontSize=11;fontColor=#CC4444;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="420" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="lane2" value="&lt;b&gt;REQUEST PATH&lt;/b&gt; · token exchange (every credentialed call)" style="text;html=1;fontSize=11;fontColor=#1F7A7A;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="455" width="460" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="divider" value="" style="endArrow=none;html=1;strokeColor=#D0D0D0;dashed=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="40" y="445" as="sourcePoint"/>
+            <mxPoint x="1180" y="445" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Control plane boxes -->
+        <mxCell id="cli" value="&lt;b&gt;User / CLI&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;openshell sandbox create&lt;br&gt;--provider alpha-svc-alice&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="200" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="gw" value="&lt;b&gt;OpenShell Gateway&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;Kubernetes driver&lt;br&gt;SVID: …/ns/&amp;lt;ns&amp;gt;/sa/openshell&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="320" y="80" width="220" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="sbcr" value="&lt;b&gt;Sandbox CR&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;agents.x-k8s.io/v1beta1&lt;br&gt;labels: managed-by=openshell&lt;br&gt;sandbox-id=&amp;lt;id&amp;gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="620" y="80" width="220" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="ctrl" value="&lt;b&gt;perilinkle controller&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#A60000&quot; style=&quot;font-size:11px&quot;&gt;API version auto-detect · SPIFFE ID template&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;finalizer openshell.dev/keycloak-client&lt;br&gt;Keycloak SA (client_credentials)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF5F5;strokeColor=#EE0000;strokeWidth=2;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="80" width="250" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="sg" value="&lt;b&gt;ServiceGroup CR&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;target: alpha-svc&lt;br&gt;→ audience scope for every sandbox&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="280" width="250" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="spire" value="&lt;b&gt;ZTWIM / SPIRE&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;ClusterSPIFFEID (per sandbox)&lt;br&gt;OIDC discovery JWKS&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="620" y="290" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Keycloak spans both lanes -->
+        <mxCell id="kc" value="&lt;b&gt;Red Hat build of Keycloak 26.6&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;--features=spiffe,client-auth-federated&lt;br&gt;&lt;br&gt;&lt;b&gt;IdP&lt;/b&gt; spiffe (trust domain, SPIRE JWKS)&lt;br&gt;&lt;br&gt;&lt;b&gt;per sandbox (from controller)&lt;/b&gt;&lt;br&gt;client = sandbox SPIFFE ID&lt;br&gt;federated-jwt · token exchange&lt;br&gt;default scope: alpha-svc&lt;br&gt;audience scope on gateway client&lt;br&gt;&lt;br&gt;&lt;b&gt;once&lt;/b&gt;&lt;br&gt;gateway client · user client · alpha-svc&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=4;verticalAlign=top;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="80" width="260" height="660" as="geometry"/>
+        </mxCell>
+
+        <!-- Request path boxes -->
+        <mxCell id="agent" value="&lt;b&gt;Agent (workload pod)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;no credential, no SPIFFE socket&lt;br&gt;curl alpha-svc&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="520" width="200" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="sup" value="&lt;b&gt;Supervisor pod&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;L7 proxy · token injection&lt;br&gt;SVID: …/openshell/sandbox/&amp;lt;id&amp;gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2FAFA;strokeColor=#37A3A3;strokeWidth=2;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="320" y="520" width="220" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="api" value="&lt;b&gt;alpha-svc API&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4D4D4D&quot; style=&quot;font-size:11px&quot;&gt;verifies JWKS · aud = alpha-svc&lt;br&gt;sees user + azp = sandbox SPIFFE ID&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D0D0D0;fontColor=#151515;fontSize=13;arcSize=8;" vertex="1" parent="1">
+          <mxGeometry x="920" y="650" width="250" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Control plane edges (red) -->
+        <mxCell id="e1" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#CC4444;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="cli" target="gw">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="t1" value="1 · create sandbox →" style="text;html=1;fontSize=11;fontColor=#CC4444;align=center;" vertex="1" parent="1">
+          <mxGeometry x="240" y="110" width="80" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#CC4444;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="gw" target="sbcr">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="t2" value="2 · Sandbox CR +&lt;br&gt;supervisor pod →" style="text;html=1;fontSize=11;fontColor=#CC4444;align=center;" vertex="1" parent="1">
+          <mxGeometry x="535" y="92" width="90" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#CC4444;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="sbcr" target="ctrl">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="t3" value="3 · watch →" style="text;html=1;fontSize=11;fontColor=#CC4444;align=center;" vertex="1" parent="1">
+          <mxGeometry x="840" y="110" width="80" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#CC4444;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.0833;" edge="1" parent="1" source="ctrl" target="kc">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="t4" value="4 · register / on delete:&lt;br&gt;deregister + release finalizer →" style="text;html=1;fontSize=11;fontColor=#CC4444;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="40" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#CC4444;strokeWidth=2;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="sg" target="ctrl">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="t5" value="↑ target audiences" style="text;html=1;fontSize=11;fontColor=#CC4444;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="225" width="120" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#6A6A6A;strokeWidth=1.5;dashed=1;exitX=0;exitY=0.5;entryX=1;entryY=0.25;" edge="1" parent="1" source="spire" target="sup">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="580" y="335"/><mxPoint x="580" y="547"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t6" value="← SVID per sandbox&lt;br&gt;(CSI socket)" style="text;html=1;fontSize=11;fontColor=#6A6A6A;align=left;" vertex="1" parent="1">
+          <mxGeometry x="586" y="400" width="120" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#6A6A6A;strokeWidth=1.5;dashed=1;exitX=1;exitY=0.5;entryX=0;entryY=0.4;" edge="1" parent="1" source="spire" target="kc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="880" y="335"/><mxPoint x="880" y="400"/><mxPoint x="1250" y="400"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t7" value="JWKS to verify SVIDs →" style="text;html=1;fontSize=11;fontColor=#6A6A6A;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="378" width="160" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Request path edges (teal) -->
+        <mxCell id="ea" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#37A3A3;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="agent" target="sup">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="ta" value="a · request →" style="text;html=1;fontSize=11;fontColor=#1F7A7A;align=center;" vertex="1" parent="1">
+          <mxGeometry x="240" y="550" width="80" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="eb" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#37A3A3;strokeWidth=2;exitX=0.3;exitY=0;entryX=0.3;entryY=1;" edge="1" parent="1" source="sup" target="gw">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="tb" value="↑ b · ExchangeProviderSubjectToken&lt;br&gt;(authenticated by sandbox SVID)" style="text;html=1;fontSize=11;fontColor=#1F7A7A;align=left;" vertex="1" parent="1">
+          <mxGeometry x="392" y="380" width="200" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="ec" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#37A3A3;strokeWidth=2;exitX=0.7;exitY=1;entryX=0;entryY=0.2;" edge="1" parent="1" source="gw" target="kc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="474" y="230"/><mxPoint x="1250" y="230"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tc" value="c · exchange #1: gateway SVID + stored user token → intermediate token (aud = sandbox SPIFFE ID) →" style="text;html=1;fontSize=11;fontColor=#1F7A7A;align=left;" vertex="1" parent="1">
+          <mxGeometry x="480" y="208" width="560" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ed" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#37A3A3;strokeWidth=2;exitX=1;exitY=0.5;entryX=0;entryY=0.75;" edge="1" parent="1" source="sup" target="kc">
+          <mxGeometry relative="1" as="geometry"><Array as="points"/></mxGeometry>
+        </mxCell>
+        <mxCell id="td" value="d · exchange #2: sandbox SVID + intermediate → alpha-svc token →" style="text;html=1;fontSize=11;fontColor=#1F7A7A;align=left;" vertex="1" parent="1">
+          <mxGeometry x="600" y="548" width="420" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="ee" style="endArrow=blockThin;endFill=1;html=1;strokeColor=#37A3A3;strokeWidth=2;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="sup" target="api">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="430" y="695"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="te" value="e · request + injected Bearer token →" style="text;html=1;fontSize=11;fontColor=#1F7A7A;align=left;" vertex="1" parent="1">
+          <mxGeometry x="600" y="673" width="260" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Notes card -->
+        <mxCell id="notes" value="&lt;b&gt;&lt;font color=&quot;#A60000&quot;&gt;Fork changes&lt;/font&gt;&lt;/b&gt;&lt;font color=&quot;#4D4D4D&quot;&gt; · restores build (missing gateway/profile files) · watches v1beta1 via discovery (Red Hat Agent Sandbox) · SPIFFE ID template must equal the ClusterSPIFFEID · drops tls: none · Keycloak service account instead of master admin&lt;/font&gt;&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#A60000&quot;&gt;Measured on workload (OCP 4.20)&lt;/font&gt;&lt;/b&gt;&lt;font color=&quot;#4D4D4D&quot;&gt; · registration 51 s after sandbox Ready: a request in that window fails closed (Keycloak: audience not found) · delete + Keycloak cleanup 44 s · if the controller is down, Sandbox deletion waits on the finalizer&lt;/font&gt;&lt;br&gt;&lt;b&gt;&lt;font color=&quot;#A60000&quot;&gt;Alternative&lt;/font&gt;&lt;/b&gt;&lt;font color=&quot;#6A6A6A&quot;&gt;&lt;i&gt; · a gateway interceptor (post_commit on CreateSandbox / DeleteSandbox) can run the same Keycloak calls keyed on the OpenShell sandbox ID, for every compute driver&lt;/i&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#D0D0D0;fontColor=#151515;fontSize=11;align=left;spacingLeft=10;spacingRight=10;arcSize=4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="780" width="1470" height="100" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

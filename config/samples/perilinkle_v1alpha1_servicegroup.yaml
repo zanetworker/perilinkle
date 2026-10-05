@@ -15,7 +15,6 @@ spec:
     endpointDefaults:
       port: 80
       protocol: rest
-      tls: none
       access: read-write
     binaries:
       - path: /usr/bin/curl
@@ -33,7 +32,6 @@ spec:
         host: beta.default.svc.cluster.local
         port: 80
         protocol: rest
-        tls: none
         access: read-write
       token:
         audience: beta

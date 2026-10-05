@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -32,6 +33,8 @@ type ServiceGroupConfig struct {
 	KeycloakPublicURL string
 	Realm             string
 	SPIFFETrustDomain string
+	SandboxGVK        schema.GroupVersionKind
+	SPIFFEIDTemplate  SPIFFEIDTemplate
 }
 
 func (r *ServiceGroupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -143,7 +146,7 @@ func (r *ServiceGroupReconciler) patchServiceGroupFinalizer(ctx context.Context,
 
 func (r *ServiceGroupReconciler) reconcileExistingSandboxes(ctx context.Context, realm keycloak.Realm) error {
 	sandboxes := &unstructured.UnstructuredList{}
-	sandboxes.SetGroupVersionKind(AgentSandboxGVK.GroupVersion().WithKind(AgentSandboxGVK.Kind + "List"))
+	sandboxes.SetGroupVersionKind(r.Config.SandboxGVK.GroupVersion().WithKind(r.Config.SandboxGVK.Kind + "List"))
 	if err := r.List(ctx, sandboxes, client.MatchingLabels{
 		r.Config.ManagedLabel: r.Config.ManagedLabelValue,
 	}); err != nil {
@@ -160,7 +163,7 @@ func (r *ServiceGroupReconciler) reconcileExistingSandboxes(ctx context.Context,
 			ID:            sandboxID,
 			Namespace:     resource.GetNamespace(),
 			Name:          resource.GetName(),
-			SPIFFESubject: sandboxSPIFFESubject(r.Config.SPIFFETrustDomain, resource.GetNamespace(), sandboxID),
+			SPIFFESubject: r.Config.SPIFFEIDTemplate.Render(r.Config.SPIFFETrustDomain, resource.GetNamespace(), resource.GetName(), sandboxID),
 		}
 		if err := r.Keycloak.EnsureSandbox(ctx, realm, sandbox); err != nil {
 			return fmt.Errorf("ensure sandbox %s/%s default scopes: %w", sandbox.Namespace, sandbox.Name, err)

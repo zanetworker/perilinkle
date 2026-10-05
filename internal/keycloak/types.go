@@ -11,11 +11,15 @@ type Reconciler interface {
 }
 
 type Config struct {
-	BaseURL              string
-	Realm                string
-	AdminRealm           string
-	AdminUsername        string
-	AdminPassword        string
+	BaseURL       string
+	Realm         string
+	AdminRealm    string
+	AdminUsername string
+	AdminPassword string
+	// AdminClientID and AdminClientSecret select a client_credentials service account
+	// (realm-management roles only) instead of the admin user password grant.
+	AdminClientID        string
+	AdminClientSecret    string
 	SPIFFETrustDomain    string
 	SPIFFEBundleEndpoint string
 	GatewayClientID      string

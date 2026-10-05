@@ -57,6 +57,10 @@ func TestServiceGroupReconcileExistingSandboxes(t *testing.T) {
 		LabelManaged: "openshell",
 	})
 	keycloak := &recordingKeycloak{}
+	upstreamTemplate, err := NewSPIFFEIDTemplate("{trustDomain}/{namespace}/sandbox/{sandboxID}")
+	if err != nil {
+		t.Fatalf("NewSPIFFEIDTemplate: %v", err)
+	}
 	reconciler := &ServiceGroupReconciler{
 		Client: fake.NewClientBuilder().
 			WithObjects(managed, unmanaged, missingID).
@@ -66,6 +70,8 @@ func TestServiceGroupReconcileExistingSandboxes(t *testing.T) {
 			ManagedLabel:      LabelManaged,
 			ManagedLabelValue: "openshell",
 			SPIFFETrustDomain: "spiffe://openshell.local",
+			SandboxGVK:        v1beta1SandboxGVK,
+			SPIFFEIDTemplate:  upstreamTemplate,
 		},
 	}
 
@@ -210,7 +216,7 @@ func TestOpenShellGatewayDescriptorSupportsProviderProfile(t *testing.T) {
 }
 
 func sandboxObject(name, namespace string, labels map[string]string) *unstructured.Unstructured {
-	obj := agentSandboxObject()
+	obj := agentSandboxObject(v1beta1SandboxGVK)
 	obj.SetName(name)
 	obj.SetNamespace(namespace)
 	obj.SetLabels(labels)
